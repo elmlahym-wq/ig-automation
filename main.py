@@ -1,21 +1,14 @@
-import logging
+import os
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+from database import engine, Base
+import models
+from routes import webhook, dashboard
 
-from database import Base, engine
-import models  # noqa: F401  (registers tables)
-from routes import api, dashboard, webhook
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+# إنشاء جميع الجداول تلقائياً في قاعدة البيانات
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Comment-to-DM Automation")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app = FastAPI(title="Instagram Comment-to-DM")
+
+# ربط الـ Routers
 app.include_router(webhook.router)
-app.include_router(api.router)
-app.include_router(dashboard.router)
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+app.include_router(dashboard.router, prefix="/dashboard")
