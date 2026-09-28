@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: comment-to-dm
+    runtime: docker
+    healthCheckPath: /health
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////data/app.db
+      - key: FACEBOOK_APP_SECRET
+        sync: false
+      - key: WEBHOOK_VERIFY_TOKEN
+        sync: false
+      - key: DASHBOARD_PASSWORD
+        sync: false

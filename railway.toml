@@ -1,0 +1,10 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+# SQLite lives in the container filesystem: attach a Railway Volume mounted at /data and set
+# DATABASE_URL=sqlite:////data/app.db, or switch to Railway Postgres.
