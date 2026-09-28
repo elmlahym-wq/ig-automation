@@ -9,6 +9,7 @@ import models
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+@router.get("", response_class=HTMLResponse)
 @router.get("/", response_class=HTMLResponse)
 @router.get("/campaigns", response_class=HTMLResponse)
 async def dashboard_campaigns(request: Request, db: Session = Depends(get_db)):
@@ -23,11 +24,10 @@ async def dashboard_campaigns(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/settings", response_class=HTMLResponse)
 async def settings(request: Request, db: Session = Depends(get_db)):
-    settings_data = None
     try:
         settings_data = db.query(models.Settings).first()
     except Exception:
-        pass
+        settings_data = None
 
     return templates.TemplateResponse(
         "settings.html",
