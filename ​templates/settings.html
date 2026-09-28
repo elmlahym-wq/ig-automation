@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h1>Instagram connection</h1>
+<p class="muted">Credentials are stored on the server and never sent back to your browser.</p>
+<form id="settings-form" class="panel">
+  <label>Access token
+    <input type="password" name="access_token" autocomplete="off" placeholder="Paste a long-lived token">
+    <small id="token-hint" class="muted"></small>
+  </label>
+  <label>Facebook Page ID <input name="page_id" autocomplete="off"></label>
+  <label>Instagram business account ID <input name="ig_account_id" autocomplete="off"></label>
+  <button class="btn primary">Save settings</button>
+</form>
+{% endblock %}
