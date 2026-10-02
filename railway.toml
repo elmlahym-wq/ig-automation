@@ -6,5 +6,5 @@ dockerfilePath = "Dockerfile"
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
-# SQLite lives in the container filesystem: attach a Railway Volume mounted at /data and set
-# DATABASE_URL=sqlite:////data/app.db, or switch to Railway Postgres.
+# DATABASE_URL = Supabase Postgres connection string (Project Settings -> Database).
+# No volume needed: the database lives in Supabase.

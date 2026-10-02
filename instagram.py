@@ -24,7 +24,10 @@ def _request(method: str, path: str, token: str, params=None, json=None):
             log.warning("Network error on %s %s: %s", method, path, e)
             r = None
         if r is not None:
-            body = r.json() if r.content else {}
+            try:
+                body = r.json() if r.content else {}
+            except ValueError:
+                body = {"error": {"message": f"Non-JSON response (HTTP {r.status_code})"}}
             log.info("%s %s -> %s %s", method, path, r.status_code, str(body)[:300])
             if r.status_code < 400:
                 return body

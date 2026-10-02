@@ -3,13 +3,11 @@ services:
     name: comment-to-dm
     runtime: docker
     healthCheckPath: /health
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 1
     envVars:
+      # Supabase connection string (Supabase dashboard -> Project Settings -> Database
+      # -> Connection string -> Direct, or Session pooler if using IPv6-less hosts).
       - key: DATABASE_URL
-        value: sqlite:////data/app.db
+        sync: false
       - key: FACEBOOK_APP_SECRET
         sync: false
       - key: WEBHOOK_VERIFY_TOKEN

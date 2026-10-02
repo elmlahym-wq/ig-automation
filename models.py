@@ -1,7 +1,12 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime
 from database import Base
+
+
+def _utcnow():
+    """Naive UTC timestamp (SQLite- and Postgres-compatible, not deprecated)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class Config(Base):
@@ -10,7 +15,7 @@ class Config(Base):
     access_token = Column(Text, default="")
     page_id = Column(String(64), default="")
     ig_account_id = Column(String(64), default="")
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
 
 
 class Campaign(Base):
@@ -22,7 +27,7 @@ class Campaign(Base):
     comment_reply = Column(Text, nullable=False)
     dm_message = Column(Text, nullable=False)
     active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     @property
     def keyword_list(self):
@@ -35,7 +40,7 @@ class ProcessedComment(Base):
     comment_id = Column(String(64), unique=True, index=True, nullable=False)
     campaign_id = Column(Integer, nullable=True)
     status = Column(String(255), default="")
-    processed_at = Column(DateTime, default=datetime.utcnow)
+    processed_at = Column(DateTime, default=_utcnow)
 
 
 def get_credentials(db):

@@ -1,6 +1,6 @@
 # Instagram Comment-to-DM Automation
 
-When someone comments a keyword on a tracked post, this app **replies publicly to the comment** and **sends the commenter a private DM**. Built on FastAPI + SQLite and the official Instagram Graph API only.
+When someone comments a keyword on a tracked post, this app **replies publicly to the comment** and **sends the commenter a private DM**. Built on FastAPI + **Supabase Postgres** (SQLite for local dev) and the official Instagram Graph API only.
 
 ## Run locally
 
@@ -14,10 +14,27 @@ Open http://localhost:8000/dashboard. Meta must reach your webhook over public H
 
 Docker: `docker build -t comment-dm . && docker run -p 8000:8000 --env-file .env comment-dm`
 
+## Database (Supabase)
+
+The app talks to any PostgreSQL database through `DATABASE_URL`. Recommended: **Supabase**.
+
+1. Create a project at [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**.
+2. Copy the connection string: click **Connect → Session pooler** and copy it:
+   ```
+   postgresql://postgres.<PROJECT_REF>:<PASSWORD>@aws-<INDEX>-<REGION>.pooler.supabase.com:5432/postgres
+   ```
+   > Copy the host from the dialog — the `aws-<INDEX>` number is a cluster index that
+   > **cannot be guessed from the region** (e.g. our project uses `aws-1-eu-central-1`, not `aws-0`).
+3. Put it in `.env` (or in your host's `DATABASE_URL` env var).
+
+Tables (`config`, `campaigns`, `processed_comments`) are created automatically on first startup. The token you paste in Dashboard → Settings is stored in the `config` row.
+
+> Local dev works out of the box without Supabase: the default `DATABASE_URL=sqlite:///./app.db` is used.
+
 ## Deploy
 
-- **Railway:** push to GitHub → New Project → Deploy from repo (`railway.toml` is picked up). Add the env vars, attach a Volume at `/data`, and set `DATABASE_URL=sqlite:////data/app.db`.
-- **Render:** New → Blueprint → select the repo (`render.yaml` provisions a 1 GB disk at `/data`; disks need a paid instance).
+- **Railway:** push to GitHub → New Project → Deploy from repo (`railway.toml` is picked up). Add the env vars: `DATABASE_URL` (Supabase), `FACEBOOK_APP_SECRET`, `WEBHOOK_VERIFY_TOKEN`, `DASHBOARD_PASSWORD`.
+- **Render:** New → Blueprint → select the repo (`render.yaml` prompts for the same env vars). No disk needed — the database lives in Supabase.
 
 Set `DASHBOARD_PASSWORD` in production, otherwise anyone with the URL can open your dashboard. When set, `/dashboard` and `/api` require HTTP Basic auth (user `DASHBOARD_USER`, default `admin`). `/webhook/instagram` is protected by Meta's request signature instead. `/health` is public.
 

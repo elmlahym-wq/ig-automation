@@ -36,7 +36,10 @@ async def receive(request: Request, background: BackgroundTasks):
     body = await request.body()
     if not _valid_signature(body, request.headers.get("X-Hub-Signature-256")):
         raise HTTPException(403, "Invalid signature")
-    payload = await request.json()
+    try:
+        payload = await request.json()
+    except ValueError:
+        raise HTTPException(400, "Invalid JSON payload")
     for entry in payload.get("entry", []):
         for change in entry.get("changes", []):
             if change.get("field") == "comments":
