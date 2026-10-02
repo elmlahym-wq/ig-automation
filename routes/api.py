@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -8,6 +10,10 @@ from models import Campaign, Config, get_credentials
 from routes.auth import require_auth
 
 router = APIRouter(prefix="/api", dependencies=[Depends(require_auth)])
+
+# Media IDs are numeric ("17841400000000000") or "<user>_<media>" — nothing else
+# may reach the Graph API (blocks "../../me", "?fields=..." path abuse, VULN-007).
+_POST_ID_RE = re.compile(r"\d+(?:_\d+)?$")
 
 
 class ConfigIn(BaseModel):
@@ -51,6 +57,8 @@ def save_config(body: ConfigIn, db: Session = Depends(get_db)):
 
 @router.get("/post/{post_id}")
 def post_preview(post_id: str, db: Session = Depends(get_db)):
+    if not _POST_ID_RE.fullmatch(post_id):  # VULN-007: no path/param injection
+        raise HTTPException(400, "Invalid post id")
     token = get_credentials(db)["access_token"]
     if not token:
         raise HTTPException(400, "Save your access token in Settings first")

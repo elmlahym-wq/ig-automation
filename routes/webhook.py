@@ -18,7 +18,9 @@ router = APIRouter()
 def verify(mode: str = Query(None, alias="hub.mode"), token: str = Query(None, alias="hub.verify_token"),
            challenge: str = Query(None, alias="hub.challenge")):
     expected = os.getenv("WEBHOOK_VERIFY_TOKEN")
-    if mode == "subscribe" and expected and hmac.compare_digest(token or "", expected):
+    # bytes compare: str compare raises TypeError (-> 500) on non-ASCII input
+    if mode == "subscribe" and expected and hmac.compare_digest(
+            (token or "").encode("utf-8"), expected.encode("utf-8")):
         return PlainTextResponse(challenge)
     raise HTTPException(403, "Verification failed")
 
@@ -28,12 +30,20 @@ def _valid_signature(body: bytes, header: str | None) -> bool:
     if not secret or not header or not header.startswith("sha256="):
         return False
     digest = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(digest, header.split("=", 1)[1])
+    return hmac.compare_digest(digest.encode(), header.split("=", 1)[1].encode("utf-8"))
 
 
 @router.post("/webhook/instagram")
 async def receive(request: Request, background: BackgroundTasks):
+    # Reject oversized payloads BEFORE reading them into memory (VULN-002):
+    # the signature check protects against forgery, not against resource exhaustion.
+    _max = 256_000
+    declared = request.headers.get("content-length", "")
+    if declared.isdigit() and int(declared) > _max:
+        raise HTTPException(413, "Payload too large")
     body = await request.body()
+    if len(body) > _max:  # covers chunked requests without content-length
+        raise HTTPException(413, "Payload too large")
     if not _valid_signature(body, request.headers.get("X-Hub-Signature-256")):
         raise HTTPException(403, "Invalid signature")
     try:

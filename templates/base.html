@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-page="{{ page }}">
+  <a class="skip" href="#main">Skip to content</a>
   <header class="top">
     <strong class="brand">Comment→DM</strong>
     <nav>
@@ -14,7 +15,7 @@
       <a href="/dashboard/settings" class="{{ 'on' if page == 'settings' }}">Settings</a>
     </nav>
   </header>
-  <main>{% block content %}{% endblock %}</main>
+  <main id="main">{% block content %}{% endblock %}</main>
   <div id="toast" role="status"></div>
   <script src="/static/app.js"></script>
 </body>
